@@ -3,6 +3,8 @@ import pygame.display
 import random
 import pygame.draw
 import pygame.event
+import pygame.font
+import pygame.time
 
 
 WIDTH = 800
@@ -16,21 +18,20 @@ class Snake():
         self.headPosY = HEIGHT/2
         self.bodies = []
         self.dir = ""
-        self.speed = 0.2
     def draw(self,surface):
-        pygame.draw.rect(surface,"green",(self.headPosX,self.headPosY,self.width,self.height))
+        pygame.draw.rect(surface,"yellow",(self.headPosX,self.headPosY,self.width,self.height))
         if len(self.bodies)>0:
             for body in self.bodies:
                 body.draw(surface)
     def moveHead(self):
         if self.dir == "UP":
-            self.headPosY -= self.speed
+            self.headPosY -= self.width
         if self.dir == "DOWN":
-            self.headPosY += self.speed
+            self.headPosY += self.width
         if self.dir == "LEFT":
-            self.headPosX -= self.speed
+            self.headPosX -= self.width
         if self.dir == "RIGHT":
-            self.headPosX += self.speed
+            self.headPosX += self.width
     def moveBody(self):
         if len(self.bodies)>0:
             for i in range(len(self.bodies)-1,-1,-1):
@@ -75,11 +76,14 @@ def main():
     window = pygame.display.set_mode((WIDTH,HEIGHT))
     snake = Snake()
     food = Food()
+    points = 0
+    font = pygame.font.SysFont('arial',25,False)
     
-
     while run == True:
         snake.draw(window)
         food.draw(window)
+        scoreText = font.render('Points = ' + str(points),1,(255,255,255))
+        window.blit(scoreText,(5,5))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -107,17 +111,30 @@ def main():
 
         snakeRect = pygame.Rect(snake.headPosX,snake.headPosY,snake.width,snake.height)
         foodRect = pygame.Rect(food.posX,food.posY,food.width,food.height)
+        bodyRects = []
+        
+        if len(snake.bodies)>0:
+            if len(bodyRects)>0:
+                bodyRects.clear()
+            for body in snake.bodies:
+                rect = pygame.Rect(body.posX,body.posY,body.width,body.height)
+                bodyRects.append(rect)
 
         if pygame.Rect.colliderect(snakeRect,foodRect):
             food.posX = random.randint(0,WIDTH-food.width)
             food.posY = random.randint(0,HEIGHT-food.height)
-
+            snake.addBody()
+            points += 1
+        
+        for i in range(len(bodyRects)):
+            if pygame.Rect.colliderect(snakeRect,bodyRects[i]):
+                run = False
+        
         snake.moveBody()
         snake.moveHead()
 
+        pygame.time.delay(80)
         pygame.display.update()
         window.fill("black")
-
-
 
 main()
